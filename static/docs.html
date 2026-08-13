@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>llm-api-hub — docs</title>
+<style>
+  :root {
+    --bg: #17181a;
+    --surface: #1f2022;
+    --surface-2: #26282a;
+    --border: #3a3a38;
+    --text: #e9e6df;
+    --text-dim: #9c9a92;
+    --amber: #d98e3f;
+    --teal: #4f9d87;
+    --red: #c1543f;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.5;
+    padding: 0 20px 100px;
+  }
+  .topnav {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 18px 0 0;
+    display: flex;
+    gap: 18px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .topnav a { color: var(--text-dim); text-decoration: none; }
+  .topnav a:hover { color: var(--text); }
+  .topnav a.active { color: var(--amber); }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-top: 28px;
+  }
+  h1 {
+    font-family: var(--mono);
+    font-size: 26px;
+    font-weight: 600;
+    margin: 6px 0 4px;
+  }
+  .sub { color: var(--text-dim); font-size: 14px; margin-bottom: 32px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 22px;
+    margin-bottom: 24px;
+  }
+  .card h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin: 0 0 16px;
+    font-weight: 600;
+  }
+  .card p, .card li { font-size: 14px; }
+  .card p { margin: 0 0 12px; }
+  .card p:last-child { margin-bottom: 0; }
+  .card ul { margin: 0 0 12px; padding-left: 20px; color: var(--text); }
+  .card a { color: var(--teal); }
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; }
+  .toc a {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 5px 12px;
+  }
+  .toc a:hover { color: var(--amber); border-color: var(--amber); }
+  .ep-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px 14px;
+    margin-bottom: 10px;
+  }
+  .method {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(79,157,135,0.15);
+    color: var(--teal);
+  }
+  .method.post { background: rgba(217,142,63,0.15); color: var(--amber); }
+  .path {
+    font-family: var(--mono);
+    font-size: 14px;
+  }
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-family: var(--mono);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .tabs { display: flex; gap: 6px; margin: 16px 0 0; }
+  .tab {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 4px 4px 0 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .tab.on {
+    color: var(--amber);
+    border-color: var(--amber);
+    border-bottom-color: var(--surface-2);
+    background: var(--surface-2);
+  }
+  .codewrap {
+    position: relative;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 0 4px 4px 4px;
+    margin-top: -1px;
+  }
+  .panel { display: none; }
+  .panel.on { display: block; }
+  .copy {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-family: var(--sans);
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .copy:hover { color: var(--amber); border-color: var(--amber); }
+  pre {
+    margin: 0;
+    padding: 16px 18px 18px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--text);
+  }
+  code { font-family: inherit; }
+  .resp-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin: 16px 0 8px;
+    font-weight: 600;
+  }
+  .note { color: var(--text-dim); font-size: 13px; margin: 8px 0 0; }
+  kbd {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+  }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a href="/" class="active">Docs</a>
+  <a href="/admin/">Keys</a>
+  <a href="/docs">Swagger</a>
+</nav>
+
+<div class="wrap">
+  <div class="eyebrow">llm-api-hub</div>
+  <h1>Documentation</h1>
+  <div class="sub">A local API gateway over small CPU-friendly models. Not for production — swap to a hosted API when you ship.</div>
+
+  <div class="card">
+    <h2>On this page</h2>
+    <div class="toc">
+      <a href="#about">About</a>
+      <a href="#running">Running</a>
+      <a href="#auth">Auth</a>
+      <a href="#health">Health</a>
+      <a href="#text">Text</a>
+      <a href="#text-stream">Text stream</a>
+      <a href="#stt">Transcribe</a>
+      <a href="#stt-stream">Transcribe stream</a>
+      <a href="#tts">Speak</a>
+      <a href="#tts-stream">Speak stream</a>
+      <a href="#image">Image</a>
+      <a href="#admin">Admin keys</a>
+    </div>
+  </div>
+
+  <div class="card" id="about">
+    <h2>What this is</h2>
+    <p>
+      A single local API in front of small open models so other projects can hit
+      one stable URL during development instead of burning hosted-API credits.
+    </p>
+    <ul>
+      <li><strong>Text</strong> — llama.cpp (persistent <code>llama-server</code>): complete JSON or SSE token stream</li>
+      <li><strong>Speech-to-text</strong> — whisper.cpp, spawned per request: complete transcript or SSE segments</li>
+      <li><strong>Text-to-speech</strong> — Kokoro-82M, lazy-loaded in the hub: complete WAV or streamed WAV</li>
+      <li><strong>Image</strong> — not implemented yet (returns 501)</li>
+    </ul>
+    <p>
+      Designed for a RAM-constrained, CPU-only box: the LLM stays warm (~2.5GB);
+      STT loads on demand; Kokoro is lazy-loaded on first speak (~1GB) and reused.
+    </p>
+  </div>
+
+  <div class="card" id="running">
+    <h2>How it runs</h2>
+    <p>Two long-running processes. Start the LLM first, then the hub:</p>
+    <div class="codewrap" style="border-radius: 4px; margin-top: 12px;">
+      <button class="copy" type="button">Copy</button>
+      <pre><code>bash scripts/start_llm.sh    # terminal 1 — keep warm
+bash scripts/start_hub.sh    # terminal 2 — API on :9000</code></pre>
+    </div>
+    <p class="note">The hub listens on <kbd>http://localhost:9000</kbd>. Interactive OpenAPI explorer: <a href="/docs">/docs</a>.</p>
+  </div>
+
+  <div class="card" id="auth">
+    <h2>Auth</h2>
+    <p>
+      Every <kbd>/v1/...</kbd> endpoint requires an API key with the matching scope
+      (<code>text</code>, <code>stt</code>, <code>tts</code>, or <code>image</code>):
+    </p>
+    <div class="codewrap" style="border-radius: 4px; margin-top: 12px; margin-bottom: 12px;">
+      <button class="copy" type="button">Copy</button>
+      <pre><code>Authorization: Bearer sk-hub-YOUR_KEY</code></pre>
+    </div>
+    <p>
+      Mint and revoke keys in the <a href="/admin/">admin panel</a> using
+      <kbd>HUB_ADMIN_TOKEN</kbd> (treat it like a root password). The full key is
+      shown once at creation; only a hash is stored.
+    </p>
+    <p class="note">Admin routes use the admin token, not an API key. Health is unauthenticated.</p>
+  </div>
+
+  <!-- Health -->
+  <div class="card" id="health">
+    <h2>Health</h2>
+    <div class="ep-head">
+      <span class="method">GET</span>
+      <span class="path">/health</span>
+      <span class="pill">no auth</span>
+    </div>
+    <p>Checks whether the persistent llama-server is reachable. STT is spawned per request; TTS is lazy-loaded in the hub.</p>
+    <div class="tabs" role="tablist">
+      <button class="tab on" type="button" data-tab="curl">curl</button>
+      <button class="tab" type="button" data-tab="python">Python</button>
+      <button class="tab" type="button" data-tab="js">JavaScript</button>
+    </div>
+    <div class="codewrap">
+      <button class="copy" type="button">Copy</button>
+      <div class="panel on" data-panel="curl"><pre><code>curl https://sean.tail15fdf0.ts.net/health</code></pre></div>
+      <div class="panel" data-panel="python"><pre><code>import httpx
+
+r = httpx.get("https://sean.tail15fdf0.ts.net/health")
+print(r.json())</code></pre></div>
+      <div class="panel" data-panel="js"><pre><code>const r = await fetch("https://sean.tail15fdf0.ts.net/health");
+console.log(await r.json());</code></pre></div>
+    </div>
+    <div class="resp-label">Typical response</div>
+    <div class="codewrap" style="border-radius: 4px;">
+      <button class="copy" type="button">Copy</button>
+      <pre><code>{
+  "status": "ok",
+  "text_backend_llama_cpp": "up",
+  "stt_backend": "on-demand (whisper.cpp)",
+  "tts_backend": "kokoro-82m (lazy-loaded)",
+  "image_backend": "not implemented yet"
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- Text -->
+  <div class="card" id="text">
+    <h2>Text generation</h2>
+    <div class="ep-head">
+      <span class="method post">POST</span>
+      <span class="path">/v1/text/generate</span>
+      <span class="pill">scope: text</span>
+    </div>
+    <p>
+      Chat-style generation. Thin proxy to llama-server’s OpenAI-compatible
+      <code>/v1/chat/completions</code>. Always returns a complete JSON body.
+      Optional fields: <code>max_tokens</code> (default 512, max 4096),
+      <code>temperature</code> (default 0.7). For tokens as they arrive, use
+      <a href="#text-stream"><code>/v1/text/generate/stream</code></a>.
+    </p>
+    <div class="tabs" role="tablist">
+      <button class="tab on" type="button" data-tab="curl">curl</button>
+      <button class="tab" type="button" data-tab="python">Python</button>
+      <button class="tab" type="button" data-tab="js">JavaScript</button>
+    </div>
+    <div class="codewrap">
+      <button class="copy" type="button">Copy</button>
+      <div class="panel on" data-panel="curl"><pre><code>curl -X POST https://sean.tail15fdf0.ts.net/v1/text/generate \
+  -H "Authorization: Bearer sk-hub-YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "Summarize what a Bloom filter is in 2 sentences."}
+    ],
+    "max_tokens": 512,
+    "temperature": 0.7
+  }'</code></pre></div>
+      <div class="panel" data-panel="python"><pre><code>import httpx
+
+r = httpx.post(
+    "https://sean.tail15fdf0.ts.net/v1/text/generate",
+    headers={"Authorization": "Bearer sk-hub-YOUR_KEY"},
+    json={
+        "messages": [
+            {
+                "role": "user",
+                "content": "Summarize what a Bloom filter is in 2 sentences.",
+            }
+        ],
+        "max_tokens": 512,
+        "temperature": 0.7,
+    },
+    timeout=120.0,
+)
+r.raise_for_status()
+print(r.json())</code></pre></div>
+      <div class="panel" data-panel="js"><pre><code>const r = await fetch("https://sean.tail15fdf0.ts.net/v1/text/generate", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer sk-hub-YOUR_KEY",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    messages: [
+      { role: "user", content: "Summarize what a Bloom filter is in 2 sentences." },
+    ],
+    max_tokens: 512,
+    temperature: 0.7,
+  }),
+});
+if (!r.ok) throw new Error(await r.text());
+console.log(await r.json());</code></pre></div>
+    </div>
+    <div class="resp-label">Typical response</div>
+    <div class="codewrap" style="border-radius: 4px;">
+      <button class="copy" type="button">Copy</button>
+      <pre><code>{
+  "id": "chatcmpl-...",
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "A Bloom filter is a space-efficient probabilistic data structure used to test whether an element is in a set. False positives are possible; false negatives are not."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 24,
+    "completion_tokens": 40,
+    "total_tokens": 64
+  }
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- Text stream -->
+  <div class="card" id="text-stream">
+    <h2>Text generation (stream)</h2>
+    <div class="ep-head">
+      <span class="method post">POST</span>
+      <span class="path">/v1/text/generate/stream</span>
+      <span class="pill">scope: text</span>
+    </div>
+    <p>
+      Same JSON body as <code>/v1/text/generate</code>. Proxies llama-server’s
+      OpenAI-style SSE (<code>text/event-stream</code>). Use <code>curl -N</code>
+      so the client does not buffer. Browser <code>EventSource</code> is GET-only —
+      use <code>fetch</code> and read the body stream.
+    </p>
+    <div class="tabs" role="tablist">
+      <button class="tab on" type="button" data-tab="curl">curl</button>
+      <button class="tab" type="button" data-tab="python">Python</button>
+      <button class="tab" type="button" data-tab="js">JavaScript</button>
+    </div>
+    <div class="codewrap">
+      <button class="copy" type="button">Copy</button>
+      <div class="panel on" data-panel="curl"><pre><code>curl -N -X POST https://sean.tail15fdf0.ts.net/v1/text/generate/stream \
+  -H "Authorization: Bearer sk-hub-YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      {"role": "user", "content": "Summarize what a Bloom filter is in 2 sentences."}
+    ],
+    "max_tokens": 512,
+    "temperature": 0.7
+  }'</code></pre></div>
+      <div class="panel" data-panel="python"><pre><code>import json
+import httpx
+
+with httpx.stream(
+    "POST",
+    "https://sean.tail15fdf0.ts.net/v1/text/generate/stream",
+    headers={"Authorization": "Bearer sk-hub-YOUR_KEY"},
+    json={
+        "messages": [
+            {
+                "role": "user",
+                "content": "Summarize what a Bloom filter is in 2 sentences.",
+            }
+        ],
+        "max_tokens": 512,
+        "temperature": 0.7,
+    },
+    timeout=120.0,
+) as r:
+    r.raise_for_status()
+    for line in r.iter_lines():
+        if not line.startswith("data: "):
+            continue
+        payload = line[6:]
+        if payload == "[DONE]":
+            break
+        delta = json.loads(payload)["choices"][0]["delta"]
+        print(delta.get("content", ""), end="", flush=True)</code></pre></div>
+      <div class="panel" data-panel="js"><pre><code>const r = await fetch("https://sean.tail15fdf0.ts.net/v1/text/generate/stream", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer sk-hub-YOUR_KEY",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    messages: [
+      { role: "user", content: "Summarize what a Bloom filter is in 2 sentences." },
+    ],
+    max_tokens: 512,
+    temperature: 0.7,
+  }),
+});
+if (!r.ok) throw new Error(await r.text());
+
+const reader = r.body.getReader();
+const decoder = new TextDecoder();
+let buf = "";
+while (true) {
+  const { value, done } = await reader.read();
+  if (done) break;
+  buf += decoder.decode(value, { stream: true });
+  const parts = buf.split("\n\n");
+  buf = parts.pop();
+  for (const part of parts) {
+    const line = part.split("\n").find((l) => l.startsWith("data: "));
+    if (!line) continue;
+    const payload = line.slice(6);
+    if (payload === "[DONE]") continue;
+    const delta = JSON.parse(payload).choices[0].delta;
+    if (delta.content) console.log(delta.content);
+  }
+}</code></pre></div>
+    </div>
+    <div class="resp-label">Typical event</div>
+    <div class="codewrap" style="border-radius: 4px;">
+      <button class="copy" type="button">Copy</button>
+      <pre><code>data: {"id":"chatcmpl-...","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"A Bloom"},"finish_reason":null}]}
+
+data: [DONE]</code></pre>
+    </div>
+  </div>
+
+  <!-- STT -->
+  <div class="card" id="stt">
+    <h2>Speech-to-text</h2>
+    <div class="ep-head">
+      <span class="method post">POST</span>
+      <span class="path">/v1/audio/transcribe</span>
+      <span class="pill">scope: stt</span>
+    </div>
+    <p>
+      Multipart file upload. whisper.cpp expects <strong>16 kHz mono WAV</strong>.
+      Convert first if needed. For segments as they are decoded, use
+      <a href="#stt-stream"><code>/v1/audio/transcribe/stream</code></a>.
+    </p>
+    <div class="codewrap" style="border-radius: 4px; margin: 12px 0;">
+      <button class="copy" type="button">Copy</button>
+      <pre><code>ffmpeg -i input.mp3 -ar 16000 -ac 1 input.wav</code></pre>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab on" type="button" data-tab="curl">curl</button>
+      <button class="tab" type="button" data-tab="python">Python</button>
+      <button class="tab" type="button" data-tab="js">JavaScript</button>
+    </div>
+    <div class="codewrap">
+      <button class="copy" type="button">Copy</button>
+      <div class="panel on" data-panel="curl"><pre><code>curl -X POST https://sean.tail15fdf0.ts.net/v1/audio/transcribe \
+  -H "Authorization: Bearer sk-hub-YOUR_KEY" \
+  -F "file=@input.wav"</code></pre></div>
+      <div class="panel" data-panel="python"><pre><code>import httpx
+
+with open("input.wav", "rb") as f:
+    r = httpx.post(
+        "https://sean.tail15fdf0.ts.net/v1/audio/transcribe",
+        headers={"Authorization": "Bearer sk-hub-YOUR_KEY"},
+        files={"file": ("input.wav", f, "audio/wav")},
+        timeout=60.0,
+    )
+r.raise_for_status()
+print(r.json()["text"])</code></pre></div>
+      <div class="panel" data-panel="js"><pre><code>const form = new FormData();
+form.append("file", wavFile); // a File / Blob of 16 kHz mono WAV
+
+const r = await fetch("https://sean.tail15fdf0.ts.net/v1/audio/transcribe", {
+  method: "POST",
+  headers: { "Authorization": "Bearer sk-hub-YOUR_KEY" },
+  body: form,
+});
+if (!r.ok) throw new Error(await r.text());
+const { text } = await r.json();
+console.log(text);</code></pre></div>
+    </div>
+    <div class="resp-label">Typical response</div>
+    <div class="codewrap" style="border-radius: 4px;">
+      <button class="copy" type="button">Copy</button>
+      <pre><code>{
+  "text": "Hello from your local model."
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- STT stream -->
+  <div class="card" id="stt-stream">
+    <h2>Speech-to-text (stream)</h2>
+    <div class="ep-head">
+      <span class="method post">POST</span>
+      <span class="path">/v1/audio/transcribe/stream</span>
+      <span class="pill">scope: stt</span>
+    </div>
+    <p>
+      Same 16 kHz mono WAV upload as <code>/v1/audio/transcribe</code>. Each
+      whisper.cpp segment is an SSE event with <code>done: false</code>. The last
+      event has <code>done: true</code> and the full concatenated transcript.
+    </p>
+    <div class="tabs" role="tablist">
+      <button class="tab on" type="button" data-tab="curl">curl</button>
+      <button class="tab" type="button" data-tab="python">Python</button>
+      <button class="tab" type="button" data-tab="js">JavaScript</button>
+    </div>
+    <div class="codewrap">
+      <button class="copy" type="button">Copy</button>
+      <div class="panel on" data-panel="curl"><pre><code>curl -N -X POST https://sean.tail15fdf0.ts.net/v1/audio/transcribe/stream \
+  -H "Authorization: Bearer sk-hub-YOUR_KEY" \
+  -F "file=@input.wav"</code></pre></div>
+      <div class="panel" data-panel="python"><pre><code>import json
+import httpx
+
+with open("input.wav", "rb") as f:
+    with httpx.stream(
+        "POST",
+        "https://sean.tail15fdf0.ts.net/v1/audio/transcribe/stream",
+        headers={"Authorization": "Bearer sk-hub-YOUR_KEY"},
+        files={"file": ("input.wav", f, "audio/wav")},
+        timeout=60.0,
+    ) as r:
+        r.raise_for_status()
+        for line in r.iter_lines():
+            if not line.startswith("data: "):
+                continue
+            event = json.loads(line[6:])
+            if event.get("error"):
+                raise RuntimeError(event["error"])
+            print(event["text"], flush=True)
+            if event.get("done"):
+                break</code></pre></div>
+      <div class="panel" data-panel="js"><pre><code>const form = new FormData();
+form.append("file", wavFile); // a File / Blob of 16 kHz mono WAV
+
+const r = await fetch("https://sean.tail15fdf0.ts.net/v1/audio/transcribe/stream", {
+  method: "POST",
+  headers: { "Authorization": "Bearer sk-hub-YOUR_KEY" },
+  body: form,
+});
+if (!r.ok) throw new Error(await r.text());
+
+const reader = r.body.getReader();
+const decoder = new TextDecoder();
+let buf = "";
+while (true) {
+  const { value, done } = await reader.read();
+  if (done) break;
+  buf += decoder.decode(value, { stream: true });
+  const parts = buf.split("\n\n");
+  buf = parts.pop();
+  for (const part of parts) {
+    const line = part.split("\n").find((l) => l.startsWith("data: "));
+    if (!line) continue;
+    const event = JSON.parse(line.slice(6));
+    console.log(event.text, event.done);
+  }
+}</code></pre></div>
+    </div>
+    <div class="resp-label">Typical events</div>
+    <div class="codewrap" style="border-radius: 4px;">
+      <button class="copy" type="button">Copy</button>
+      <pre><code>data: {"text": "Hello from", "done": false}
+
+data: {"text": "your local model.", "done": false}
+
+data: {"text": "Hello from your local model.", "done": true}</code></pre>
+    </div>
+  </div>
+
+  <!-- TTS -->
+  <div class="card" id="tts">
+    <h2>Text-to-speech</h2>
+    <div class="ep-head">
+      <span class="method post">POST</span>
+      <span class="path">/v1/audio/speak</span>
+      <span class="pill">scope: tts</span>
+    </div>
+    <p>Synthesizes speech with Kokoro-82M. Response body is a WAV file (<code>audio/wav</code>). Optional fields: <code>voice</code> (default <code>af_heart</code>) and <code>speed</code> (default <code>1.0</code>).</p>
+    <div class="tabs" role="tablist">
+      <button class="tab on" type="button" data-tab="curl">curl</button>
+      <button class="tab" type="button" data-tab="python">Python</button>
+      <button class="tab" type="button" data-tab="js">JavaScript</button>
+    </div>
+    <div class="codewrap">
+      <button class="copy" type="button">Copy</button>
+      <div class="panel on" data-panel="curl"><pre><code>curl -X POST https://sean.tail15fdf0.ts.net/v1/audio/speak \
+  -H "Authorization: Bearer sk-hub-YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hello from your local model."}' \
+  --output speech.wav</code></pre></div>
+      <div class="panel" data-panel="python"><pre><code>import httpx
+from pathlib import Path
+
+r = httpx.post(
+    "https://sean.tail15fdf0.ts.net/v1/audio/speak",
+    headers={"Authorization": "Bearer sk-hub-YOUR_KEY"},
+    json={"text": "Hello from your local model."},
+    timeout=60.0,
+)
+r.raise_for_status()
+Path("speech.wav").write_bytes(r.content)</code></pre></div>
+      <div class="panel" data-panel="js"><pre><code>const r = await fetch("https://sean.tail15fdf0.ts.net/v1/audio/speak", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer sk-hub-YOUR_KEY",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ text: "Hello from your local model." }),
+});
+if (!r.ok) throw new Error(await r.text());
+
+const blob = await r.blob();
+const url = URL.createObjectURL(blob);
+const audio = new Audio(url);
+audio.play();
+// or: download — const a = document.createElement("a"); a.href = url; a.download = "speech.wav"; a.click();</code></pre></div>
+    </div>
+    <p class="note">Success is a binary WAV, not JSON. On failure you get a JSON error body. For audio as it is synthesized, use <a href="#tts-stream"><code>/v1/audio/speak/stream</code></a>.</p>
+  </div>
+
+  <!-- TTS stream -->
+  <div class="card" id="tts-stream">
+    <h2>Text-to-speech (stream)</h2>
+    <div class="ep-head">
+      <span class="method post">POST</span>
+      <span class="path">/v1/audio/speak/stream</span>
+      <span class="pill">scope: tts</span>
+    </div>
+    <p>
+      Same JSON body as <code>/v1/audio/speak</code> (<code>text</code>, optional
+      <code>voice</code> / <code>speed</code>). Response is a streaming WAV
+      (16-bit PCM mono, 24 kHz): a header, then audio chunks as Kokoro finishes
+      each phrase.
+    </p>
+    <div class="tabs" role="tablist">
+      <button class="tab on" type="button" data-tab="curl">curl</button>
+      <button class="tab" type="button" data-tab="python">Python</button>
+      <button class="tab" type="button" data-tab="js">JavaScript</button>
+    </div>
+    <div class="codewrap">
+      <button class="copy" type="button">Copy</button>
+      <div class="panel on" data-panel="curl"><pre><code>curl -N -X POST https://sean.tail15fdf0.ts.net/v1/audio/speak/stream \
+  -H "Authorization: Bearer sk-hub-YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Hello from your local model."}' \
+  --output speech.wav</code></pre></div>
+      <div class="panel" data-panel="python"><pre><code>import httpx
+from pathlib import Path
+
+with httpx.stream(
+    "POST",
+    "https://sean.tail15fdf0.ts.net/v1/audio/speak/stream",
+    headers={"Authorization": "Bearer sk-hub-YOUR_KEY"},
+    json={"text": "Hello from your local model."},
+    timeout=60.0,
+) as r:
+    r.raise_for_status()
+    with Path("speech.wav").open("wb") as out:
+        for chunk in r.iter_bytes():
+            out.write(chunk)</code></pre></div>
+      <div class="panel" data-panel="js"><pre><code>const r = await fetch("https://sean.tail15fdf0.ts.net/v1/audio/speak/stream", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer sk-hub-YOUR_KEY",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ text: "Hello from your local model." }),
+});
+if (!r.ok) throw new Error(await r.text());
+
+const chunks = [];
+const reader = r.body.getReader();
+while (true) {
+  const { value, done } = await reader.read();
+  if (done) break;
+  chunks.push(value);
+}
+const blob = new Blob(chunks, { type: "audio/wav" });
+const url = URL.createObjectURL(blob);
+const audio = new Audio(url);
+audio.play();</code></pre></div>
+    </div>
+    <p class="note">Success is a binary WAV stream, not JSON. Players that need a known file size in the WAV header may wait until the stream ends.</p>
+  </div>
+
+  <!-- Image -->
+  <div class="card" id="image">
+    <h2>Image generation</h2>
+    <div class="ep-head">
+      <span class="method post">POST</span>
+      <span class="path">/v1/image/generate</span>
+      <span class="pill">scope: image</span>
+    </div>
+    <p>Placeholder. Not implemented yet — always returns 501. Planned as on-demand stable-diffusion.cpp, same spawn-and-exit pattern as STT/TTS.</p>
+    <div class="tabs" role="tablist">
+      <button class="tab on" type="button" data-tab="curl">curl</button>
+      <button class="tab" type="button" data-tab="python">Python</button>
+      <button class="tab" type="button" data-tab="js">JavaScript</button>
+    </div>
+    <div class="codewrap">
+      <button class="copy" type="button">Copy</button>
+      <div class="panel on" data-panel="curl"><pre><code>curl -X POST https://sean.tail15fdf0.ts.net/v1/image/generate \
+  -H "Authorization: Bearer sk-hub-YOUR_KEY"</code></pre></div>
+      <div class="panel" data-panel="python"><pre><code>import httpx
+
+r = httpx.post(
+    "https://sean.tail15fdf0.ts.net/v1/image/generate",
+    headers={"Authorization": "Bearer sk-hub-YOUR_KEY"},
+)
+print(r.status_code, r.json())</code></pre></div>
+      <div class="panel" data-panel="js"><pre><code>const r = await fetch("https://sean.tail15fdf0.ts.net/v1/image/generate", {
+  method: "POST",
+  headers: { "Authorization": "Bearer sk-hub-YOUR_KEY" },
+});
+console.log(r.status, await r.json());</code></pre></div>
+    </div>
+    <div class="resp-label">Typical response</div>
+    <div class="codewrap" style="border-radius: 4px;">
+      <button class="copy" type="button">Copy</button>
+      <pre><code>{
+  "detail": "Image generation not implemented yet"
+}</code></pre>
+    </div>
+  </div>
+
+  <!-- Admin -->
+  <div class="card" id="admin">
+    <h2>Admin keys</h2>
+    <p>
+      Use the <a href="/admin/">admin panel</a> in a browser, or call these routes
+      with <kbd>HUB_ADMIN_TOKEN</kbd>. Anyone with that token can mint or revoke keys.
+    </p>
+
+    <div class="ep-head" style="margin-top: 18px;">
+      <span class="method post">POST</span>
+      <span class="path">/admin/keys</span>
+      <span class="pill">admin token</span>
+    </div>
+    <p>Create a key. Scopes: <code>text</code>, <code>stt</code>, <code>tts</code>, <code>image</code>. <code>expires_in_days</code> is 1–3650. The full key is returned only this once.</p>
+    <div class="tabs" role="tablist">
+      <button class="tab on" type="button" data-tab="curl">curl</button>
+      <button class="tab" type="button" data-tab="python">Python</button>
+      <button class="tab" type="button" data-tab="js">JavaScript</button>
+    </div>
+    <div class="codewrap">
+      <button class="copy" type="button">Copy</button>
+      <div class="panel on" data-panel="curl"><pre><code>curl -X POST https://sean.tail15fdf0.ts.net/admin/keys \
+  -H "Authorization: Bearer $HUB_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "eventer-dev",
+    "scopes": ["text", "stt"],
+    "expires_in_days": 30
+  }'</code></pre></div>
+      <div class="panel" data-panel="python"><pre><code>import os
+import httpx
+
+r = httpx.post(
+    "https://sean.tail15fdf0.ts.net/admin/keys",
+    headers={"Authorization": f"Bearer {os.environ['HUB_ADMIN_TOKEN']}"},
+    json={
+        "name": "eventer-dev",
+        "scopes": ["text", "stt"],
+        "expires_in_days": 30,
+    },
+)
+r.raise_for_status()
+print(r.json()["api_key"])  # save now — shown only once</code></pre></div>
+      <div class="panel" data-panel="js"><pre><code>const r = await fetch("https://sean.tail15fdf0.ts.net/admin/keys", {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${adminToken}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    name: "eventer-dev",
+    scopes: ["text", "stt"],
+    expires_in_days: 30,
+  }),
+});
+const data = await r.json();
+console.log(data.api_key); // save now — shown only once</code></pre></div>
+    </div>
+    <div class="resp-label">Typical response</div>
+    <div class="codewrap" style="border-radius: 4px;">
+      <button class="copy" type="button">Copy</button>
+      <pre><code>{
+  "api_key": "sk-hub-...",
+  "name": "eventer-dev",
+  "scopes": ["text", "stt"],
+  "expires_at": "2026-09-12T14:00:00+00:00",
+  "warning": "This is the only time the full key is shown. Save it now."
+}</code></pre>
+    </div>
+
+    <div class="ep-head" style="margin-top: 28px;">
+      <span class="method">GET</span>
+      <span class="path">/admin/keys</span>
+      <span class="pill">admin token</span>
+    </div>
+    <p>List keys. Hashes are never returned — only <code>key_prefix</code>, scopes, status fields, and timestamps.</p>
+    <div class="tabs" role="tablist">
+      <button class="tab on" type="button" data-tab="curl">curl</button>
+      <button class="tab" type="button" data-tab="python">Python</button>
+      <button class="tab" type="button" data-tab="js">JavaScript</button>
+    </div>
+    <div class="codewrap">
+      <button class="copy" type="button">Copy</button>
+      <div class="panel on" data-panel="curl"><pre><code>curl https://sean.tail15fdf0.ts.net/admin/keys \
+  -H "Authorization: Bearer $HUB_ADMIN_TOKEN"</code></pre></div>
+      <div class="panel" data-panel="python"><pre><code>import os
+import httpx
+
+r = httpx.get(
+    "https://sean.tail15fdf0.ts.net/admin/keys",
+    headers={"Authorization": f"Bearer {os.environ['HUB_ADMIN_TOKEN']}"},
+)
+print(r.json())</code></pre></div>
+      <div class="panel" data-panel="js"><pre><code>const r = await fetch("https://sean.tail15fdf0.ts.net/admin/keys", {
+  headers: { "Authorization": `Bearer ${adminToken}` },
+});
+console.log(await r.json());</code></pre></div>
+    </div>
+    <div class="resp-label">Typical response</div>
+    <div class="codewrap" style="border-radius: 4px;">
+      <button class="copy" type="button">Copy</button>
+      <pre><code>[
+  {
+    "id": 1,
+    "name": "eventer-dev",
+    "key_prefix": "sk-hub-xxxxxx",
+    "scopes": "text,stt",
+    "created_at": "2026-08-13T14:00:00+00:00",
+    "expires_at": "2026-09-12T14:00:00+00:00",
+    "revoked": 0,
+    "last_used_at": null
+  }
+]</code></pre>
+    </div>
+
+    <div class="ep-head" style="margin-top: 28px;">
+      <span class="method post">POST</span>
+      <span class="path">/admin/keys/{id}/revoke</span>
+      <span class="pill">admin token</span>
+    </div>
+    <p>Revoke a key immediately. Callers using it get 403 on the next request.</p>
+    <div class="tabs" role="tablist">
+      <button class="tab on" type="button" data-tab="curl">curl</button>
+      <button class="tab" type="button" data-tab="python">Python</button>
+      <button class="tab" type="button" data-tab="js">JavaScript</button>
+    </div>
+    <div class="codewrap">
+      <button class="copy" type="button">Copy</button>
+      <div class="panel on" data-panel="curl"><pre><code>curl -X POST https://sean.tail15fdf0.ts.net/admin/keys/1/revoke \
+  -H "Authorization: Bearer $HUB_ADMIN_TOKEN"</code></pre></div>
+      <div class="panel" data-panel="python"><pre><code>import os
+import httpx
+
+r = httpx.post(
+    "https://sean.tail15fdf0.ts.net/admin/keys/1/revoke",
+    headers={"Authorization": f"Bearer {os.environ['HUB_ADMIN_TOKEN']}"},
+)
+print(r.json())</code></pre></div>
+      <div class="panel" data-panel="js"><pre><code>const r = await fetch("https://sean.tail15fdf0.ts.net/admin/keys/1/revoke", {
+  method: "POST",
+  headers: { "Authorization": `Bearer ${adminToken}` },
+});
+console.log(await r.json());</code></pre></div>
+    </div>
+    <div class="resp-label">Typical response</div>
+    <div class="codewrap" style="border-radius: 4px;">
+      <button class="copy" type="button">Copy</button>
+      <pre><code>{
+  "status": "revoked",
+  "id": 1
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll(".tabs").forEach((tabs) => {
+  const wrap = tabs.nextElementSibling;
+  tabs.querySelectorAll(".tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      tabs.querySelectorAll(".tab").forEach((t) => t.classList.remove("on"));
+      btn.classList.add("on");
+      wrap.querySelectorAll(".panel").forEach((p) => {
+        p.classList.toggle("on", p.dataset.panel === btn.dataset.tab);
+      });
+    });
+  });
+});
+
+document.querySelectorAll(".copy").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const wrap = btn.closest(".codewrap");
+    const panel = wrap.querySelector(".panel.on") || wrap;
+    const code = panel.querySelector("code");
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code.textContent);
+      btn.textContent = "Copied";
+      setTimeout(() => { btn.textContent = "Copy"; }, 1200);
+    } catch {
+      btn.textContent = "Failed";
+      setTimeout(() => { btn.textContent = "Copy"; }, 1200);
+    }
+  });
+});
+</script>
+</body>
+</html>

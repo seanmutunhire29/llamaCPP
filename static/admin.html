@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>llm-api-hub — keys</title>
+<style>
+  :root {
+    --bg: #17181a;
+    --surface: #1f2022;
+    --surface-2: #26282a;
+    --border: #3a3a38;
+    --text: #e9e6df;
+    --text-dim: #9c9a92;
+    --amber: #d98e3f;
+    --teal: #4f9d87;
+    --red: #c1543f;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+    --sans: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.5;
+    padding: 48px 20px 100px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--amber);
+    text-transform: uppercase;
+  }
+  h1 {
+    font-family: var(--mono);
+    font-size: 26px;
+    font-weight: 600;
+    margin: 6px 0 4px;
+  }
+  .sub { color: var(--text-dim); font-size: 14px; margin-bottom: 32px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 22px;
+    margin-bottom: 24px;
+  }
+  .card h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin: 0 0 16px;
+    font-weight: 600;
+  }
+
+  label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+  input[type=text], select {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 9px 10px;
+    border-radius: 4px;
+    font-family: var(--sans);
+    font-size: 14px;
+  }
+  input[type=text]:focus, select:focus, button:focus, .chip input:focus + span {
+    outline: 2px solid var(--amber);
+    outline-offset: 1px;
+  }
+  .row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+  .row > div { flex: 1; min-width: 160px; }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { display: inline-flex; }
+  .chip input { position: absolute; opacity: 0; }
+  .chip span {
+    display: inline-block;
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text-dim);
+    user-select: none;
+  }
+  .chip input:checked + span {
+    border-color: var(--amber);
+    color: var(--amber);
+    background: rgba(217, 142, 63, 0.08);
+  }
+
+  button {
+    background: var(--amber);
+    color: #17181a;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 4px;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button:hover { filter: brightness(1.08); }
+  button.ghost {
+    background: transparent;
+    color: var(--red);
+    border: 1px solid var(--border);
+    font-weight: 500;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  button.small { padding: 6px 12px; font-size: 13px; }
+
+  .error { color: var(--red); font-size: 13px; margin-top: 10px; }
+
+  /* the "receipt" — signature element for a one-time key reveal */
+  .receipt {
+    font-family: var(--mono);
+    background: var(--surface-2);
+    border: 1px dashed var(--amber);
+    border-radius: 4px;
+    padding: 16px 18px;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+  .receipt .k {
+    display: block;
+    word-break: break-all;
+    color: var(--teal);
+    font-size: 14px;
+    margin: 8px 0 12px;
+    padding: 10px;
+    background: var(--bg);
+    border-radius: 4px;
+  }
+  .receipt .warn { color: var(--amber); font-size: 12px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left;
+    color: var(--text-dim);
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    vertical-align: middle;
+  }
+  td.name { font-family: var(--sans); }
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    margin-right: 4px;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .status { padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .status.active { background: rgba(79,157,135,0.15); color: var(--teal); }
+  .status.revoked { background: rgba(193,84,63,0.15); color: var(--red); }
+  .status.expired { background: rgba(156,154,146,0.15); color: var(--text-dim); }
+
+  .empty { color: var(--text-dim); font-size: 13px; padding: 20px 0; text-align: center; }
+  .unlock { max-width: 420px; margin: 80px auto; }
+
+  .topnav {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 0 0;
+    display: flex;
+    gap: 18px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .topnav a { color: var(--text-dim); text-decoration: none; }
+  .topnav a:hover { color: var(--text); }
+  .topnav a.active { color: var(--amber); }
+</style>
+</head>
+<body>
+<nav class="topnav">
+  <a href="/">Docs</a>
+  <a href="/admin/" class="active">Keys</a>
+  <a href="/docs">Swagger</a>
+</nav>
+<div class="wrap" id="app"></div>
+
+<script>
+const API = "/admin";
+let ADMIN_TOKEN = sessionStorage.getItem("hub_admin_token") || "";
+
+function headers() {
+  return { "Authorization": "Bearer " + ADMIN_TOKEN, "Content-Type": "application/json" };
+}
+
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, { ...opts, headers: headers() });
+  if (res.status === 401) {
+    sessionStorage.removeItem("hub_admin_token");
+    ADMIN_TOKEN = "";
+    render();
+    throw new Error("unauthorized");
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || "Request failed");
+  return data;
+}
+
+function fmtDate(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+function statusOf(key) {
+  if (key.revoked) return { label: "revoked", cls: "revoked" };
+  if (new Date(key.expires_at) < new Date()) return { label: "expired", cls: "expired" };
+  return { label: "active", cls: "active" };
+}
+
+function renderUnlock() {
+  document.getElementById("app").innerHTML = `
+    <div class="unlock">
+      <div class="eyebrow">llm-api-hub</div>
+      <h1>Admin access</h1>
+      <div class="sub">Enter the admin token set via HUB_ADMIN_TOKEN on the server.</div>
+      <div class="card">
+        <label for="tok">Admin token</label>
+        <input type="text" id="tok" placeholder="paste token">
+        <div style="margin-top:14px;"><button onclick="unlock()">Unlock</button></div>
+        <div class="error" id="unlock-err"></div>
+      </div>
+    </div>
+  `;
+}
+
+async function unlock() {
+  const val = document.getElementById("tok").value.trim();
+  if (!val) return;
+  ADMIN_TOKEN = val;
+  try {
+    await api("/keys");
+    sessionStorage.setItem("hub_admin_token", val);
+    render();
+  } catch (e) {
+    document.getElementById("unlock-err").textContent = "Invalid token.";
+    ADMIN_TOKEN = "";
+  }
+}
+
+const SCOPES = [
+  { id: "text", label: "text" },
+  { id: "stt", label: "stt" },
+  { id: "tts", label: "tts" },
+  { id: "image", label: "image" },
+];
+
+async function renderMain() {
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <div class="eyebrow">llm-api-hub</div>
+    <h1>API keys</h1>
+    <div class="sub">Keys grant scoped access to /v1/text, /v1/audio, and /v1/image endpoints.</div>
+
+    <div class="card">
+      <h2>Create a key</h2>
+      <div class="row">
+        <div>
+          <label for="name">Name</label>
+          <input type="text" id="name" placeholder="e.g. eventer-dev">
+        </div>
+        <div>
+          <label for="expiry">Expires in</label>
+          <select id="expiry">
+            <option value="1">1 day</option>
+            <option value="7" selected>7 days</option>
+            <option value="30">30 days</option>
+            <option value="90">90 days</option>
+            <option value="365">1 year</option>
+          </select>
+        </div>
+      </div>
+      <label>Scopes</label>
+      <div class="chips" id="scope-chips">
+        ${SCOPES.map(s => `
+          <label class="chip">
+            <input type="checkbox" value="${s.id}" checked>
+            <span>${s.label}</span>
+          </label>
+        `).join("")}
+      </div>
+      <div style="margin-top:16px;"><button onclick="createKey()">Generate key</button></div>
+      <div class="error" id="create-err"></div>
+      <div id="receipt-slot"></div>
+    </div>
+
+    <div class="card">
+      <h2>Existing keys</h2>
+      <div id="keys-table"></div>
+    </div>
+  `;
+  loadKeys();
+}
+
+async function createKey() {
+  const name = document.getElementById("name").value.trim();
+  const days = parseInt(document.getElementById("expiry").value, 10);
+  const scopes = [...document.querySelectorAll("#scope-chips input:checked")].map(c => c.value);
+  const errEl = document.getElementById("create-err");
+  errEl.textContent = "";
+
+  if (!name) { errEl.textContent = "Name is required."; return; }
+  if (scopes.length === 0) { errEl.textContent = "Pick at least one scope."; return; }
+
+  try {
+    const result = await api("/keys", {
+      method: "POST",
+      body: JSON.stringify({ name, scopes, expires_in_days: days }),
+    });
+    document.getElementById("receipt-slot").innerHTML = `
+      <div class="receipt">
+        this key is shown once — copy it now
+        <span class="k" id="new-key">${result.api_key}</span>
+        <button class="small" onclick="copyKey()">Copy</button>
+        <div class="warn" style="margin-top:8px;">scopes: ${result.scopes.join(", ")} · expires ${fmtDate(result.expires_at)}</div>
+      </div>
+    `;
+    document.getElementById("name").value = "";
+    loadKeys();
+  } catch (e) {
+    errEl.textContent = e.message;
+  }
+}
+
+function copyKey() {
+  const el = document.getElementById("new-key");
+  navigator.clipboard.writeText(el.textContent);
+}
+
+async function loadKeys() {
+  const el = document.getElementById("keys-table");
+  try {
+    const keys = await api("/keys");
+    if (keys.length === 0) {
+      el.innerHTML = `<div class="empty">No keys yet. Create one above.</div>`;
+      return;
+    }
+    el.innerHTML = `
+      <table>
+        <thead>
+          <tr><th>Name</th><th>Key</th><th>Scopes</th><th>Status</th><th>Expires</th><th>Last used</th><th></th></tr>
+        </thead>
+        <tbody>
+          ${keys.map(k => {
+            const st = statusOf(k);
+            return `
+              <tr>
+                <td class="name">${k.name}</td>
+                <td>${k.key_prefix}…</td>
+                <td>${k.scopes.split(",").map(s => `<span class="pill">${s}</span>`).join("")}</td>
+                <td><span class="status ${st.cls}">${st.label}</span></td>
+                <td>${fmtDate(k.expires_at)}</td>
+                <td>${k.last_used_at ? fmtDate(k.last_used_at) : "never"}</td>
+                <td>${st.cls === "active" ? `<button class="ghost" onclick="revoke(${k.id})">Revoke</button>` : ""}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
+  } catch (e) {
+    el.innerHTML = `<div class="error">${e.message}</div>`;
+  }
+}
+
+async function revoke(id) {
+  if (!confirm("Revoke this key? Anything using it will immediately lose access.")) return;
+  await api(`/keys/${id}/revoke`, { method: "POST" });
+  loadKeys();
+}
+
+function render() {
+  if (!ADMIN_TOKEN) renderUnlock();
+  else renderMain();
+}
+
+render();
+</script>
+</body>
+</html>
