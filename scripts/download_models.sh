@@ -8,7 +8,7 @@ MODELS_DIR="$ROOT_DIR/models"
 mkdir -p "$MODELS_DIR"
 
 echo "== Text-gen: Qwen2.5-3B-Instruct, Q4_K_M quant (~2 GB) =="
-huggingface-cli download Qwen/Qwen2.5-3B-Instruct-GGUF \
+hf download Qwen/Qwen2.5-3B-Instruct-GGUF \
     qwen2.5-3b-instruct-q4_k_m.gguf \
     --local-dir "$MODELS_DIR"
 

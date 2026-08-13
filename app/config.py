@@ -6,7 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- llama.cpp (text generation) ---
 # llama-server is expected to already be running persistently (see scripts/start_llm.sh)
 # because it's the one model worth keeping warm on a RAM-constrained box.
-LLAMA_SERVER_URL = os.getenv("LLAMA_SERVER_URL", "http://127.0.0.1:8080")
+LLAMA_SERVER_URL = os.getenv("LLAMA_SERVER_URL", "http://127.0.0.1:8081")
 
 # --- whisper.cpp (speech-to-text) ---
 WHISPER_CPP_BIN = os.getenv("WHISPER_CPP_BIN", str(BASE_DIR / "third_party/whisper.cpp/build/bin/whisper-cli"))

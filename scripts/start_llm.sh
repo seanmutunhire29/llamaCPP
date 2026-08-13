@@ -10,5 +10,5 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
     --model "$ROOT_DIR/models/qwen2.5-3b-instruct-q4_k_m.gguf" \
     --ctx-size 4096 \
     --threads "$(nproc)" \
-    --port 8080 \
+    --port 8081 \
     --host 127.0.0.1
