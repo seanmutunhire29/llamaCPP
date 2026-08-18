@@ -1,184 +1,163 @@
 # llm-api-hub
 
-A single local API in front of small, CPU-friendly open models — text generation,
-speech-to-text, and text-to-speech today; image generation planned. Built for
-internal testing so you don't burn API credits on other projects during dev,
-then swap the base URL for a real hosted API (Claude, etc.) for production.
+A local API hub for small, CPU-friendly open models. It supports text generation, speech-to-text, and text-to-speech. You can use it for internal testing to avoid burning API credits on other projects during development. When you are ready for production, you can swap the base URL for a hosted API like Claude or OpenAI.
 
-Backend engines: **llama.cpp** (text), **whisper.cpp** (STT), **Kokoro-82M** (TTS).
+**Live Demo / Hosted App:** [https://sean.tail15fdf0.ts.net/](https://sean.tail15fdf0.ts.net/)
 
-## Why this architecture
+**Backend engines:**
 
-You're on a 10GB RAM, CPU-only box, which is tight enough that "just load
-everything" will OOM. The design:
+* llama.cpp (Text)
+* whisper.cpp (Speech-to-Text)
+* Kokoro-82M (Text-to-Speech)
 
-- **llama-server runs persistently.** Text-gen is the thing you'll query
-  most often and it's the slowest to load, so it stays warm (~2.5GB resident
-  with a 3B Q4 model + 4k context).
-- **whisper.cpp runs per-request**, spawned as a subprocess by FastAPI and
-  torn down immediately after. It loads in well under a second (~150MB), so
-  there's no real cost to not keeping it resident.
-- **Kokoro-82M is lazy-loaded in the hub** on the first `/v1/audio/speak`
-  (~1GB peak) and reused after that. There is no CLI to spawn, and reloading
-  the ONNX every request is too slow — still well within the RAM budget.
-- **Image generation is not implemented yet on purpose.** Even the smallest
-  usable diffusion models are heavier and slower on CPU than the budget here
-  comfortably allows alongside a warm LLM. Phase 2 (see below) handles it the
-  same way as STT: spawn on demand, never keep it warm.
+## Architecture and Resource Budget
 
-Rough RAM budget: OS + FastAPI (~1GB) + llama-server (~2.5GB) + Kokoro after
-first TTS (~1GB) leaves ~5.5GB of headroom for OS cache, STT spikes, and
-whatever you add later.
+This project is built for a 10GB RAM, CPU-only environment. Loading all models into memory at once will cause an Out of Memory (OOM) error. The design works around this constraint:
+
+* **Text generation (llama.cpp):** The `llama-server` runs persistently. Text generation is queried most often and is the slowest to load, so it stays warm in memory. It uses about 2.5GB resident memory with a 3B Q4 model and 4k context.
+* **Speech-to-Text (whisper.cpp):** This runs per-request. It is spawned as a subprocess by FastAPI and torn down immediately after completion. It loads in under a second and uses about 150MB of RAM, so there is no cost to keeping it cold.
+* **Text-to-Speech (Kokoro-82M):** This is lazy-loaded in the hub on the first `/v1/audio/speak` request. It peaks at about 1GB of RAM and is reused after that. There is no CLI to spawn, and reloading the ONNX model every request is too slow. It fits comfortably within the RAM budget.
+* **Image generation (Phase 2):** Image generation is not implemented yet. Diffusion models are heavy and slow on a CPU. The planned implementation will mirror STT: spawn on demand and never keep it warm.
+
+**Rough RAM budget:** OS and FastAPI (1GB) + llama-server (2.5GB) + Kokoro after first TTS (1GB). This leaves about 5.5GB of headroom for the OS cache, STT memory spikes, and future additions.
 
 ## Setup
+
+Clone the repository and run the setup scripts:
 
 ```bash
 git clone <this repo> && cd llm-api-hub
 bash scripts/setup.sh            # builds llama.cpp + whisper.cpp, installs espeak-ng
 bash scripts/download_models.sh  # ~3.0GB of model downloads
+
 ```
 
 ## Running
 
-Two long-running processes:
+You need to run two processes:
 
 ```bash
-# terminal 1 — keep this warm
+# Terminal 1: keep this warm
 bash scripts/start_llm.sh
 
-# terminal 2 — the actual API your other projects call
+# Terminal 2: the actual API your other projects call
 bash scripts/start_hub.sh
-```
-
-The hub listens on `http://localhost:9000`. Open that URL in a browser for
-the in-app guide (overview + full curl / Python / JavaScript examples).
-Interactive OpenAPI is at `/docs`; the key panel is at `/admin/`.
-
-For always-on use, wrap both scripts in systemd services or a process
-manager (pm2, supervisord) rather than leaving them in terminals.
-
-## Auth
-
-Every `/v1/...` endpoint requires an API key with the right scope
-(`text`, `stt`, `tts`, or `image`), sent as:
 
 ```
+
+The hub listens on `http://localhost:9000`. Open that URL in a browser for the in-app guide, which includes an overview and full curl, Python, and JavaScript examples. The interactive OpenAPI documentation is at `/docs`. The API key management panel is at `/admin/`.
+
+For always-on use, you should wrap both scripts in systemd services or a process manager like pm2 or supervisord rather than leaving them running in active terminals.
+
+## Authentication
+
+Every `/v1/...` endpoint requires an API key with the correct scope (text, stt, tts, or image). You must send it in the headers:
+
+```text
 Authorization: Bearer sk-hub-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
 ```
 
-Keys are managed through a small admin panel, itself gated behind a
-separate admin token — anyone with that token can mint or revoke keys,
-so treat it like a root password:
+Keys are managed through an admin panel. The panel is gated behind a separate admin token. Anyone with that token can mint or revoke keys. You should treat it like a root password.
 
 ```bash
 export HUB_ADMIN_TOKEN=$(openssl rand -hex 24)
-echo $HUB_ADMIN_TOKEN   # save this somewhere safe, you'll paste it into the panel
+echo $HUB_ADMIN_TOKEN   # save this somewhere safe to paste into the panel
+
 ```
 
-With the hub running, open `https://sean.tail15fdf0.ts.net/admin/` in a browser,
-paste the admin token in, and you can:
+With the hub running, open `[https://sean.tail15fdf0.ts.net/admin/](https://sean.tail15fdf0.ts.net/admin/)` in a browser and paste the admin token. You can:
 
-- **Generate a key** — give it a name, pick which scopes it can use
-  (text/STT/TTS/image), and set an expiry (1 day up to 1 year).
-- **See all keys** at a glance — scopes, status (active/expired/revoked),
-  when it expires, when it was last used.
-- **Revoke a key** instantly, whether or not it's expired yet.
+* Generate a key. You can name it, pick which scopes it can use, and set an expiration date between 1 day and 1 year.
+* View all keys. You can see their scopes, status, expiration date, and last used time.
+* Revoke a key instantly.
 
-The full key is shown exactly once, right after creation — only its
-hash is stored, so if you lose it, revoke it and make a new one.
+The full key is shown exactly once right after creation. Only the hash is stored in the database. If you lose the key, you must revoke it and create a new one.
 
-You can also manage keys directly via the admin API (useful for scripting):
+You can also manage keys directly via the admin API. This is useful for scripting:
 
 ```bash
-# create a key
+# Create a key
 curl -X POST https://sean.tail15fdf0.ts.net/admin/keys \
   -H "Authorization: Bearer $HUB_ADMIN_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name": "eventer-dev", "scopes": ["text", "stt"], "expires_in_days": 30}'
 
-# list keys
-curl https://sean.tail15fdf0.ts.net/admin/keys -H "Authorization: Bearer $HUB_ADMIN_TOKEN"
+# List keys
+curl https://sean.tail15fdf0.ts.net/admin/keys \
+  -H "Authorization: Bearer $HUB_ADMIN_TOKEN"
 
-# revoke a key
-curl -X POST https://sean.tail15fdf0.ts.net/admin/keys/3/revoke -H "Authorization: Bearer $HUB_ADMIN_TOKEN"
+# Revoke a key
+curl -X POST https://sean.tail15fdf0.ts.net/admin/keys/3/revoke \
+  -H "Authorization: Bearer $HUB_ADMIN_TOKEN"
+
 ```
 
-Keys and their hashes live in `hub.db` (SQLite, created automatically on
-first run) — back it up if you don't want to regenerate keys after a
-reinstall.
+Keys and their hashes are stored in `hub.db`, an SQLite database created automatically on the first run. Back it up if you want to keep your keys after a reinstall.
 
 ## Endpoints
 
-| Endpoint                      | Method | Purpose                                      |
-| ----------------------------- | ------ | -------------------------------------------- |
-| `/health`                     | GET    | Checks whether llama-server is reachable     |
-| `/v1/text/generate`           | POST   | Chat-style text generation (complete JSON)   |
-| `/v1/text/generate/stream`    | POST   | Same body, OpenAI-style SSE token stream     |
-| `/v1/audio/transcribe`        | POST   | Speech-to-text (upload 16kHz mono WAV)       |
-| `/v1/audio/transcribe/stream` | POST   | Same upload, SSE of each transcript segment  |
-| `/v1/audio/speak`             | POST   | Text-to-speech (returns a complete WAV)      |
-| `/v1/audio/speak/stream`      | POST   | Same body, WAV streamed as it is synthesized |
-| `/v1/image/generate`          | POST   | Not implemented yet — returns 501            |
+| Endpoint | Method | Purpose |
+| --- | --- | --- |
+| `/health` | GET | Checks whether llama-server is reachable |
+| `/v1/text/generate` | POST | Chat-style text generation (returns complete JSON) |
+| `/v1/text/generate/stream` | POST | Same body, OpenAI-style SSE token stream |
+| `/v1/audio/transcribe` | POST | Speech-to-text (upload 16kHz mono WAV) |
+| `/v1/audio/transcribe/stream` | POST | Same upload, SSE stream of each transcript segment |
+| `/v1/audio/speak` | POST | Text-to-speech (returns a complete WAV file) |
+| `/v1/audio/speak/stream` | POST | Same body, WAV streamed as it is synthesized |
+| `/v1/image/generate` | POST | Not implemented yet (returns 501) |
 
-Each of text, STT, and TTS has two routes: a complete-response endpoint and a
-`/stream` sibling that takes the same body (and the same API-key scope) but
-returns data as it is produced. `/generate` always returns JSON even if you
-send `"stream": true` — use `/v1/text/generate/stream` for tokens.
+Text, STT, and TTS each have two routes: a complete-response endpoint and a `/stream` sibling. The stream endpoint takes the same body and requires the same API key scope, but returns data as it is produced. The standard `/generate` endpoint always returns JSON even if you send `"stream": true`. You must use `/v1/text/generate/stream` for tokens.
 
-### Example: text generation
+### Example: Text Generation
 
 ```bash
 curl -X POST https://sean.tail15fdf0.ts.net/v1/text/generate \
   -H "Authorization: Bearer sk-hub-..." \
   -H "Content-Type: application/json" \
   -d '{"messages": [{"role": "user", "content": "Summarize what a Bloom filter is in 2 sentences."}]}'
+
 ```
 
-Streaming (OpenAI-style SSE — use `curl -N` so curl does not buffer):
+Streaming (OpenAI-style SSE). Use `curl -N` so curl does not buffer the output:
 
 ```bash
 curl -N -X POST https://sean.tail15fdf0.ts.net/v1/text/generate/stream \
   -H "Authorization: Bearer sk-hub-..." \
   -H "Content-Type: application/json" \
   -d '{"messages": [{"role": "user", "content": "Summarize what a Bloom filter is in 2 sentences."}]}'
-```
-
-Typical events:
 
 ```
-data: {"id":"chatcmpl-...","object":"chat.completion.chunk","choices":[{"index":0,"delta":{"content":"A Bloom"},"finish_reason":null}]}
 
-data: [DONE]
-```
+### Example: Transcription
 
-### Example: transcription
+Convert your file first, as whisper.cpp requires 16kHz mono audio:
 
 ```bash
-ffmpeg -i input.mp3 -ar 16000 -ac 1 input.wav   # whisper.cpp wants 16kHz mono
+ffmpeg -i input.mp3 -ar 16000 -ac 1 input.wav
+
+```
+
+Send the file:
+
+```bash
 curl -X POST https://sean.tail15fdf0.ts.net/v1/audio/transcribe \
   -H "Authorization: Bearer sk-hub-..." \
   -F "file=@input.wav"
+
 ```
 
-Streaming (one SSE event per whisper.cpp segment; last event has `"done": true`):
+Streaming (one SSE event per whisper.cpp segment):
 
 ```bash
 curl -N -X POST https://sean.tail15fdf0.ts.net/v1/audio/transcribe/stream \
   -H "Authorization: Bearer sk-hub-..." \
   -F "file=@input.wav"
-```
-
-Typical events:
 
 ```
-data: {"text": "Hello from", "done": false}
 
-data: {"text": "your local model.", "done": false}
-
-data: {"text": "Hello from your local model.", "done": true}
-```
-
-### Example: speech synthesis
+### Example: Speech Synthesis
 
 ```bash
 curl -X POST https://sean.tail15fdf0.ts.net/v1/audio/speak \
@@ -186,11 +165,10 @@ curl -X POST https://sean.tail15fdf0.ts.net/v1/audio/speak \
   -H "Content-Type: application/json" \
   -d '{"text": "Hello from your local model."}' \
   --output speech.wav
+
 ```
 
-Streaming WAV (same JSON body; audio arrives as Kokoro finishes each phrase).
-The body is 16-bit PCM mono at 24 kHz: a WAV header, then chunks. Players that
-need a known file size in the header may wait until the stream ends.
+Streaming WAV. The body is 16-bit PCM mono at 24 kHz. It sends a WAV header followed by chunks as Kokoro finishes each phrase. Audio players that need a known file size in the header may wait until the stream ends.
 
 ```bash
 curl -N -X POST https://sean.tail15fdf0.ts.net/v1/audio/speak/stream \
@@ -198,42 +176,25 @@ curl -N -X POST https://sean.tail15fdf0.ts.net/v1/audio/speak/stream \
   -H "Content-Type: application/json" \
   -d '{"text": "Hello from your local model."}' \
   --output speech.wav
+
 ```
 
-Optional JSON fields: `voice` (default `af_heart`) and `speed` (default `1.0`).
-See [Kokoro voices](https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md).
+Optional JSON fields for TTS include `voice` (default is `af_heart`) and `speed` (default is `1.0`).
 
-## Swapping in bigger/different models
+## Swapping Models
 
-- **Text**: change `models/qwen2.5-3b-instruct-q4_k_m.gguf` in
-  `scripts/start_llm.sh` to any other GGUF file. Stay CPU-conscious: a 7B
-  Q4 model needs ~4.5GB resident, which still fits but leaves much less
-  headroom for concurrent STT/TTS spikes.
-- **STT**: swap `ggml-base.en.bin` for `ggml-tiny.en.bin` (faster, less
-  accurate, ~75MB) or `ggml-small.en.bin` (slower, more accurate, ~465MB)
-  in `app/config.py`.
-- **TTS**: change `KOKORO_VOICE` (e.g. `af_sarah`, `am_adam`) or drop in
-  another Kokoro ONNX/voices pair via `KOKORO_MODEL_PATH` /
-  `KOKORO_VOICES_PATH`. Voice list:
-  [VOICES.md](https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md).
+* **Text:** Change `models/qwen2.5-3b-instruct-q4_k_m.gguf` in `scripts/start_llm.sh` to another GGUF file. A 7B Q4 model needs about 4.5GB resident memory, which leaves less room for STT and TTS spikes.
+* **STT:** Change `ggml-base.en.bin` to `ggml-tiny.en.bin` (faster, ~75MB) or `ggml-small.en.bin` (slower, ~465MB) in `app/config.py`.
+* **TTS:** Change `KOKORO_VOICE` or point to another Kokoro ONNX/voices pair via `KOKORO_MODEL_PATH` and `KOKORO_VOICES_PATH`.
 
-## Adding image generation (phase 2)
+## Adding Image Generation (Phase 2)
 
-When you're ready:
+To add image generation:
 
-1. Build [`stable-diffusion.cpp`](https://github.com/leejet/stable-diffusion.cpp)
-   the same way `setup.sh` builds llama.cpp/whisper.cpp.
-2. Pick an SD-Turbo-class model (1-step/few-step) — full multi-step SDXL
-   on CPU with 10GB RAM will be painfully slow.
-3. Mirror the STT/TTS pattern in `app/routers/image.py`: spawn the binary
-   per request, write output to `TMP_DIR`, return the file, clean up.
-   Do **not** make it a persistent server — it's the heaviest single model
-   here and shouldn't compete with the LLM for RAM at idle.
+1. Build `stable-diffusion.cpp` the same way `setup.sh` builds the other engines.
+2. Select an SD-Turbo-class model (1-step or few-step). Full multi-step SDXL on a CPU with 10GB RAM will be too slow.
+3. Mirror the STT/TTS pattern in `app/routers/image.py`. Spawn the binary per request, write the output to a temporary directory, return the file, and clean up. Do not run it as a persistent server.
 
-## Using this alongside production code
+## Using with Production Code
 
-Point your other projects' dev/test config at `http://<this-box>:9000/v1/...`
-during development. For production, swap the base URL and auth for a real
-hosted API — the endpoint shapes here loosely mirror common API conventions
-so the swap is mostly a config change, not a rewrite.
-# llamaCPP
+Point your other projects' development config to `http://<this-box>:9000/v1/...` while working. For production, swap the base URL and auth tokens for a hosted API. The endpoint shapes in this hub loosely mirror common API conventions, making the transition a configuration change rather than a code rewrite.
