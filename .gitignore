@@ -1,4 +1,5 @@
 hub.db
+.env
 models/*.gguf
 models/*.bin
 models/*.onnx

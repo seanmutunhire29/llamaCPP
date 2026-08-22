@@ -6,7 +6,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-exec "$ROOT_DIR/third_party/llama.cpp/build/bin/llama-server" \
+"$ROOT_DIR/third_party/llama.cpp/build/bin/llama-server" \
     --model "$ROOT_DIR/models/qwen2.5-3b-instruct-q4_k_m.gguf" \
     --ctx-size 4096 \
     --threads "$(nproc)" \
